@@ -1,0 +1,770 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Thread</title>
+    <link rel="shortcut icon" href="images/st.png" type="image/png">
+    <style>
+      /* Basic comic-style styles */
+      body {
+        font-family: "Comic Sans MS", "Comic Neue", cursive;
+        background-color: white;
+        color: black;
+        margin: 0;
+        padding: 0;
+        line-height: 1.4;
+        background-image: linear-gradient(
+            to right,
+            #f0f0f0 1px,
+            transparent 1px
+          ),
+          linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-attachment: fixed;
+      }
+
+      .page-wrapper {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 200px;
+        padding: 20px;
+        border-right: 3px solid black;
+        background-color: white;
+        position: relative;
+      }
+
+      .sidebar:after {
+        content: "";
+        position: absolute;
+        bottom: -15px;
+        left: 20px;
+        border-width: 15px 15px 0;
+        border-style: solid;
+        border-color: black transparent;
+        display: block;
+        width: 0;
+      }
+
+      .main-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border-left: 3px solid black;
+        border-right: 3px solid black;
+        background-color: white;
+      }
+
+      .right-sidebar {
+        width: 200px;
+        padding: 20px;
+        border-left: 3px solid black;
+        background-color: white;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 800;
+        font-size: 2.5rem;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        text-shadow: 3px 3px 0 #ccc;
+      }
+
+      /* Form styles */
+      .auth-form,
+      .post-form,
+      .post {
+        background: white;
+        padding: 20px;
+        border-radius: 0;
+        border: 3px solid black;
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .auth-form:before,
+      .post-form:before,
+      .post:before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        right: 10px;
+        height: 10px;
+        background: repeating-linear-gradient(
+          45deg,
+          black,
+          black 5px,
+          white 5px,
+          white 10px
+        );
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border: 3px solid black;
+        border-radius: 0;
+        font-size: 16px;
+        box-sizing: border-box;
+        background: white;
+        color: black;
+        font-family: inherit;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      /* Comic-style buttons */
+      button {
+        background-color: black;
+        color: white;
+        border: 3px solid black;
+        padding: 12px 15px;
+        border-radius: 0;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        font-family: inherit;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s;
+      }
+
+      button:hover {
+        background-color: white;
+        color: black;
+        text-decoration: underline;
+      }
+
+      button:active {
+        transform: translate(3px, 3px);
+      }
+
+      /* Messages and headers */
+      #auth-message {
+        text-align: center;
+        margin-top: 10px;
+        font-weight: bold;
+        border: 2px dashed black;
+        padding: 10px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 3px solid black;
+        padding-bottom: 10px;
+        flex-wrap: wrap;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* Posts */
+      .feed {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .post-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-weight: bold;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+      }
+
+      .post-content {
+        margin-bottom: 10px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+
+      .post-time {
+        font-size: 14px;
+        font-style: italic;
+      }
+
+      /* Side panels */
+      .comic-panel {
+        border: 3px solid black;
+        padding: 15px;
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .comic-panel h3 {
+        margin-top: 0;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+      }
+
+      .trending-list,
+      .suggested-users {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .trending-list li,
+      .suggested-users li {
+        padding: 8px 0;
+        border-bottom: 1px dashed #ccc;
+      }
+
+      .trending-list li:last-child,
+      .suggested-users li:last-child {
+        border-bottom: none;
+      }
+
+      /* Comic effects */
+      .comic-dots {
+        height: 10px;
+        background: radial-gradient(circle, black 2px, transparent 3px);
+        background-size: 10px 10px;
+        margin: 15px 0;
+      }
+
+      /* Responsiveness */
+      @media (max-width: 1024px) {
+        .sidebar,
+        .right-sidebar {
+          display: none;
+        }
+
+        .main-content {
+          border-left: none;
+          border-right: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .post {
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      /* Utility classes */
+      .hidden {
+        display: none;
+      }
+
+      .error {
+        color: black;
+        background-color: #ffebee;
+        border: 3px solid black !important;
+      }
+
+      .success {
+        color: black;
+        background-color: #e8f5e9;
+        border: 3px solid black !important;
+      }
+
+      /* Speech bubble styles */
+      .speech-bubble {
+        position: relative;
+        padding: 15px;
+        margin: 1em 0;
+        border: 3px solid black;
+        border-radius: 0;
+      }
+
+      .speech-bubble:after {
+        content: "";
+        position: absolute;
+        bottom: -15px;
+        left: 20px;
+        border-width: 15px 15px 0;
+        border-style: solid;
+        border-color: black transparent;
+        display: block;
+        width: 0;
+      }
+
+      .speech-bubble:before {
+        content: "";
+        position: absolute;
+        bottom: -11px;
+        left: 21px;
+        border-width: 14px 14px 0;
+        border-style: solid;
+        border-color: white transparent;
+        display: block;
+        width: 0;
+        z-index: 1;
+      }
+
+      /* Icons */
+      .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+      }
+
+      /* Statistics */
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .stat-item {
+        flex: 1;
+      }
+
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+      }
+
+      .blinking-dot {
+  animation: blink 1s infinite;
+  opacity: 1;
+  font-size: 50px;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+      <!-- Left sidebar -->
+      <aside class="sidebar">
+        <div class="comic-panel">
+          <h3>TRENDING</h3>
+          <ul class="trending-list">
+            <li>#FuckJalen</li>
+            <li>...</li>
+          </ul>
+        </div>
+
+        
+      </aside>
+
+      <!-- Main content -->
+      <main class="main-content">
+        <div id="auth-container">
+          <h1>Solana Thread</h1>
+          <div class="comic-dots"></div>
+          <div class="auth-form speech-bubble">
+            <input type="text" id="username" placeholder="YOUR NAME" required="">
+            <input type="password" id="private-key" placeholder="SECRET KEY" class="hidden">
+            <button id="auth-button">CLICK TO CONTINUE</button>
+            <p id="auth-message"></p>
+          </div>
+
+          <div style="text-align: center; font-size: 20px;">Log in to see messages.</div>
+        </div>
+
+        <div class="hidden" id="app-container">
+          <header>
+            <h1>Solana Thread</h1>
+            <div class="user-info">
+              <span id="current-username"></span>
+              <button id="logout-button">X</button>
+            </div>
+          </header>
+
+          <div class="comic-dots"></div>
+
+          <div class="post-form speech-bubble">
+            <textarea id="new-post" placeholder="WHAT'S NEW WITH YOU?"></textarea>
+            <button id="post-button">LAUNCH INTO SPACE</button>
+          </div>
+
+          <div class="feed" id="post-feed">
+            <!-- Posts will appear here -->
+          </div>
+        </div>
+      </main>
+
+      <!-- Right sidebar -->
+      <aside class="right-sidebar">
+        <div class="comic-panel">
+          <h3>SUGGESTIONS</h3>
+          <ul class="suggested-users">
+            <li>No Suggestion yet<span class="blinking-dot">.</span></li>
+          </ul>
+        </div>
+
+        <div class="comic-panel">
+          <h3>EVENTS</h3>
+          <ul class="trending-list">
+          <li>No events yet<span class="blinking-dot">.</span></li>
+          </ul>
+        </div>
+
+        <div class="comic-panel">
+          <h3>ABOUT</h3>
+          <p>
+            Solana Thread - It is a place for creative people to share their
+            thoughts, ideas and comics in the style of black and white graphics.
+          </p>
+        </div>
+        <div style="display: flex; justify-content: space-evenly; color: black; text-decoration: none"><a href="https://t.me/Solanathread">Telegram</a><a href="https://x.com/SolanaThread">X</a></div>
+      </aside>
+    </div>
+
+    <script>
+        // Текущий пользователь
+        let currentUser = null;
+        
+        // DOM элементы
+        let authContainer, appContainer, usernameInput, privateKeyInput, authButton;
+        let authMessage, currentUsernameSpan, logoutButton, newPostTextarea, postButton, postFeed;
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получаем DOM элементы
+            authContainer = document.getElementById("auth-container");
+            appContainer = document.getElementById("app-container");
+            usernameInput = document.getElementById("username");
+            privateKeyInput = document.getElementById("private-key");
+            authButton = document.getElementById("auth-button");
+            authMessage = document.getElementById("auth-message");
+            currentUsernameSpan = document.getElementById("current-username");
+            logoutButton = document.getElementById("logout-button");
+            newPostTextarea = document.getElementById("new-post");
+            postButton = document.getElementById("post-button");
+            postFeed = document.getElementById("post-feed");
+
+            // Назначаем обработчики событий
+            authButton.addEventListener("click", handleAuth);
+            logoutButton.addEventListener("click", logout);
+            postButton.addEventListener("click", createPost);
+            newPostTextarea.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                    createPost();
+                }
+            });
+
+            // Проверяем сессию
+            checkSession();
+        });
+
+        // Проверка сессии
+        function checkSession() {
+            const session = JSON.parse(localStorage.getItem("solanaThreadSession"));
+            if (session && session.username && session.privateKey) {
+                verifyUser(session.username, session.privateKey, true);
+            }
+        }
+
+        // Выход из системы
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem("solanaThreadSession");
+            showAuth();
+            authMessage.textContent = "";
+            privateKeyInput.classList.add("hidden");
+            authButton.textContent = "CLICK TO CONTINUE";
+        }
+
+        // Обработчик аутентификации
+        async function handleAuth() {
+            const username = usernameInput.value.trim();
+            const privateKey = privateKeyInput.value.trim();
+
+            if (!username) {
+                showAuthMessage("NEED A NAME, BUDDY!", "error");
+                return;
+            }
+
+            try {
+                // Если введен приватный ключ - попытка входа
+                if (!privateKeyInput.classList.contains("hidden")) {
+                    if (!privateKey) {
+                        showAuthMessage("WHERE'S THE KEY? DON'T SEE IT!", "error");
+                        return;
+                    }
+                    await verifyUser(username, privateKey);
+                }
+                // Проверка имени пользователя
+                else {
+                    const response = await fetchPostData('check_username', { username });
+                    
+                    if (response.exists) {
+                        privateKeyInput.classList.remove("hidden");
+                        showAuthMessage("THIS NAME IS TAKEN! ENTER YOUR SECRET KEY", "error");
+                        authButton.textContent = "LOG IN";
+                    } else {
+                        // Регистрация нового пользователя
+                        const newPrivateKey = generatePrivateKey();
+                        const registerResponse = await fetchPostData('register', { 
+                            username, 
+                            private_key: newPrivateKey 
+                        });
+                        
+                        if (registerResponse.success) {
+                            currentUser = {
+                                username,
+                                privateKey: newPrivateKey
+                            };
+                            
+                            localStorage.setItem("solanaThreadSession", JSON.stringify(currentUser));
+                            showApp();
+                            showAuthMessage(
+                                `YOUR KEY: ${newPrivateKey}\nWRITE IT DOWN SOMEWHERE!`,
+                                "success"
+                            );
+                        } else {
+                            showAuthMessage("REGISTRATION FAILED! TRY AGAIN", "error");
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAuthMessage("SOMETHING WENT WRONG! TRY AGAIN", "error");
+            }
+        }
+
+        // Проверка пользователя
+        async function verifyUser(username, privateKey, isSessionCheck = false) {
+            try {
+                const response = await fetchPostData('login', { 
+                    username, 
+                    private_key: privateKey 
+                });
+                
+                if (response.success) {
+                    currentUser = {
+                        username,
+                        privateKey
+                    };
+                    
+                    if (!isSessionCheck) {
+                        localStorage.setItem("solanaThreadSession", JSON.stringify(currentUser));
+                        showAuthMessage(
+                            `GREAT TO SEE YOU AGAIN, ${username.toUpperCase()}!`,
+                            "success"
+                        );
+                    }
+                    showApp();
+                } else {
+                    if (!isSessionCheck) {
+                        showAuthMessage("WRONG KEY! TRY AGAIN", "error");
+                    } else {
+                        localStorage.removeItem("solanaThreadSession");
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (!isSessionCheck) {
+                    showAuthMessage("LOGIN FAILED! TRY AGAIN", "error");
+                }
+            }
+        }
+
+        // Создание поста
+        async function createPost() {
+    const content = newPostTextarea.value.trim();
+    if (!content) {
+        showAuthMessage("WRITE SOMETHING BEFORE SENDING!", "error");
+        return;
+    }
+
+    try {
+        const response = await fetchPostData('create_post', { 
+            username: currentUser.username,
+            private_key: currentUser.privateKey,
+            content 
+        });
+        
+        console.log('Create post response:', response); // Добавим лог для отладки
+        
+        if (response.success) {
+            newPostTextarea.value = "";
+            loadPosts();
+            window.scrollTo(0, 0);
+        } else {
+            showAuthMessage(response.message || "POST FAILED! TRY AGAIN", "error");
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAuthMessage("POSTING FAILED! TRY AGAIN", "error");
+    }
+}
+
+        // Загрузка постов
+        async function loadPosts() {
+            try {
+                const posts = await fetchPostData('get_posts');
+                renderPosts(posts);
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                renderPosts([]);
+            }
+        }
+
+        // Отображение постов
+        function renderPosts(posts) {
+            postFeed.innerHTML = "";
+
+            if (posts.length === 0) {
+                postFeed.innerHTML = `
+                    <div class="post speech-bubble">
+                        <div class="post-content">IT'S EMPTY HERE SO FAR. BE THE FIRST!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            posts.forEach((post) => {
+                const postElement = document.createElement("div");
+                postElement.className = "post speech-bubble";
+
+                const time = new Date(post.post_time);
+                const timeString = time.toLocaleString();
+
+                postElement.innerHTML = `
+                    <div class="post-header">
+                        <span>@${post.username}</span>
+                        <span class="post-time">${timeString}</span>
+                    </div>
+                    <div class="post-content">${post.content.replace(/\n/g, "<br>")}</div>
+                    <div class="post-actions">
+                        <button class="like-button" data-id="${post.post_id}">👍 ${post.likes || 0}</button>
+                        <button class="comment-button" data-id="${post.post_id}">💬 Comment</button>
+                    </div>
+                `;
+
+                postFeed.appendChild(postElement);
+            });
+
+            // Обработчики для кнопок лайков
+            document.querySelectorAll(".like-button").forEach((button) => {
+                button.addEventListener("click", async function() {
+                    const postId = this.getAttribute("data-id");
+                    try {
+                        const response = await fetchPostData('like_post', { 
+                            post_id: postId,
+                            username: currentUser.username,
+                            private_key: currentUser.privateKey
+                        });
+                        if (response.success) {
+                            loadPosts();
+                        }
+                    } catch (error) {
+                        console.error('Error liking post:', error);
+                    }
+                });
+            });
+
+            // Обработчики для кнопок комментариев
+            document.querySelectorAll(".comment-button").forEach((button) => {
+                button.addEventListener("click", function() {
+                    alert("Comment feature will be added in the next update!");
+                });
+            });
+        }
+
+        // Универсальная функция для POST-запросов
+        async function fetchPostData(action, data = {}) {
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action,
+                    ...data
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            
+            return await response.json();
+        }
+
+        // Показать экран аутентификации
+        function showAuth() {
+            authContainer.classList.remove("hidden");
+            appContainer.classList.add("hidden");
+            usernameInput.value = "";
+            privateKeyInput.value = "";
+            privateKeyInput.classList.add("hidden");
+        }
+
+        // Показать основное приложение
+        function showApp() {
+            authContainer.classList.add("hidden");
+            appContainer.classList.remove("hidden");
+            currentUsernameSpan.textContent = `@${currentUser.username}`;
+            loadPosts();
+        }
+
+        // Показать сообщение аутентификации
+        function showAuthMessage(message, type = "error") {
+            authMessage.textContent = message;
+            authMessage.className = type;
+        }
+
+        // Генерация приватного ключа
+        function generatePrivateKey() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let result = "";
+            for (let i = 0; i < 16; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+                if ((i + 1) % 4 === 0 && i !== 15) result += "-";
+            }
+            return result;
+        }
+    </script>
+
+</body></html>
